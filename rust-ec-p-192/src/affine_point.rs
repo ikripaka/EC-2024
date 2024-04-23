@@ -1,4 +1,4 @@
-use crate::helpers::{affine_to_projective, projective_to_affine};
+use crate::helpers::{affine_to_projective, check_affine_point_for_inf, projective_to_affine};
 use crate::projective_point::EcPointP;
 use crate::EcCurve;
 use num_bigint::BigUint;
@@ -9,8 +9,9 @@ mod multiplication;
 
 #[derive(Debug)]
 pub struct EcPointA {
-    pub x: BigUint,
-    pub y: BigUint,
+    pub(crate) x: BigUint,
+    pub(crate) y: BigUint,
+    pub(crate) is_inf: bool,
 }
 
 impl EcPointA {
@@ -18,6 +19,7 @@ impl EcPointA {
         EcPointA {
             x: x.clone(),
             y: y.clone(),
+            is_inf: check_affine_point_for_inf(x, y),
         }
     }
 

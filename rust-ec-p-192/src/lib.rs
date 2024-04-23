@@ -1,5 +1,5 @@
 pub mod affine_point;
-mod helpers;
+pub mod helpers;
 pub mod projective_point;
 
 use crate::affine_point::EcPointA;
@@ -18,27 +18,17 @@ pub struct EcCurve {
     a: BigUint,
     b: BigUint,
     q: BigUint,
-    bp: EcPointP,
 }
 
 #[derive(Debug)]
-pub struct ParamsProjective {
+pub struct Params {
     pub a: BigUint,
     pub b: BigUint,
     pub q: BigUint,
-    pub bp: EcPointP,
 }
 
 #[derive(Debug)]
-pub struct ParamsAffine {
-    pub a: BigUint,
-    pub b: BigUint,
-    pub q: BigUint,
-    pub bp: EcPointA,
-}
-
-#[derive(Debug)]
-enum EcError {
+pub enum EcError {
     IncorrectParameters(String),
     NonZeroDiscriminant(BigUint),
 }
@@ -59,45 +49,29 @@ impl Display for EcError {
     }
 }
 
-impl ParamsProjective {
-    fn check_discriminant(&self) -> Result<bool> {
-        if let (x, false) = check_discriminant(&self.a, &self.b, &self.q) {
-            Err(EcError::NonZeroDiscriminant(x))
-        } else {
-            Ok(true)
-        }
-    }
-}
-
-impl ParamsAffine {
-    fn check_discriminant(&self) -> (BigUint, bool) {
+impl Params {
+    fn check_discriminant(&self) -> Result<()> {
         check_discriminant(&self.a, &self.b, &self.q)
     }
 }
 
 impl EcCurve {
-    pub fn new(params: ParamsAffine) -> Result<Self> {
-        if let (x, false) = params.check_discriminant() {
-            return Err(EcError::NonZeroDiscriminant());
+    pub fn new(params: Params) -> Result<Self> {
+        if let Err(e) = params.check_discriminant() {
+            return Err(e);
         }
         let ec = EcCurve {
             a: params.a,
             b: params.b,
             q: params.q,
-            bp: params.bp.clone(),
         };
-
-        assert!(
-            ec.check_affine_point(&params.bp),
-            "Point doesn't belong to curve"
-        );
         Ok(ec)
     }
 
     // y^2 = x^3 + ax + b
     pub fn check_affine_point(&self, p: &EcPointA) -> bool {
         p.y.modpow(&BigUint::from(2_u8), &self.q)
-            == p.x.modpow(&BigUint::from(3_u8), &self.q) + &self.a * &p.x + *self.b
+            == p.x.modpow(&BigUint::from(3_u8), &self.q) + &self.a * &p.x + &self.b
     }
 
     // Y^{2}Z = X^{3} + aXZ^{2} + bZ^3,
@@ -105,7 +79,7 @@ impl EcCurve {
         (p.y.modpow(&BigUint::from(2_u8), &self.q) * &p.z) % &self.q
             == p.x.modpow(&BigUint::from(3_u8), &self.q)
                 + &self.a * &p.x * p.z.modpow(&BigUint::from(2_u8), &self.q)
-                + *self.b * p.z.modpow(&BigUint::from(3_u8), &self.q)
+                + &self.b * p.z.modpow(&BigUint::from(3_u8), &self.q)
     }
 
     pub fn affine_point_add(&self, a: &EcPointA, b: &EcPointA) -> EcPointA {

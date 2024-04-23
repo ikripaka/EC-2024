@@ -2,6 +2,7 @@ use crate::affine_point::EcPointA;
 use crate::helpers::{affine_to_projective, projective_to_affine};
 use crate::EcCurve;
 use num_bigint::BigUint;
+use num_traits::{One, Zero};
 
 mod addition;
 mod helpers;
@@ -30,5 +31,9 @@ impl EcPointP {
 
     pub fn to_affine(&self, ec_curve: &EcCurve) -> EcPointA {
         projective_to_affine(ec_curve, self)
+    }
+
+    pub fn is_inf(&self) -> bool {
+        self.x == BigUint::zero() && self.y == BigUint::one() && self.z == BigUint::zero()
     }
 }
