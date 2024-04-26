@@ -1,23 +1,24 @@
 use crate::affine_point::EcPointA;
 use crate::helpers::{affine_to_projective, projective_to_affine};
 use crate::EcCurve;
-use num_bigint::BigUint;
+use num_bigint::BigInt;
 use num_traits::{One, Zero};
+use std::fmt::{Debug, Formatter, LowerHex, UpperHex};
 
 mod addition;
 mod helpers;
 mod multiplication;
 
-// O_e = (0, 1, 0)
-#[derive(Debug, Clone)]
+#[derive(Clone, Eq, PartialEq)]
 pub struct EcPointP {
-    pub x: BigUint,
-    pub y: BigUint,
-    pub z: BigUint,
+    pub x: BigInt,
+    pub y: BigInt,
+    pub z: BigInt,
 }
 
+// todo: look here https://github.com/pornin/crrl/blob/main/src/p256.rs
 impl EcPointP {
-    pub fn new(x: &BigUint, y: &BigUint, z: &BigUint) -> Self {
+    pub fn new(x: &BigInt, y: &BigInt, z: &BigInt) -> Self {
         EcPointP {
             x: x.clone(),
             y: y.clone(),
@@ -25,15 +26,49 @@ impl EcPointP {
         }
     }
 
-    pub fn from_affine(a: &EcPointA, ec_curve: &EcCurve) -> Self {
-        affine_to_projective(ec_curve, a)
+    pub fn from_affine(a: &EcPointA) -> Self {
+        affine_to_projective(a)
     }
 
-    pub fn to_affine(&self, ec_curve: &EcCurve) -> EcPointA {
+    pub fn to_affine(&self, ec_curve: &EcCurve) -> crate::Result<EcPointA> {
         projective_to_affine(ec_curve, self)
     }
 
     pub fn is_inf(&self) -> bool {
-        self.x == BigUint::zero() && self.y == BigUint::one() && self.z == BigUint::zero()
+        self.x.is_zero() && self.y.is_one() && self.z.is_zero()
+    }
+
+    pub fn neutral() -> EcPointP {
+        EcPointP {
+            x: Default::default(),
+            y: BigInt::one(),
+            z: Default::default(),
+        }
+    }
+
+    pub fn negative(&self) -> EcPointP {
+        EcPointP {
+            x: self.x.clone(),
+            y: -self.y.clone(),
+            z: self.z.clone(),
+        }
+    }
+}
+
+impl UpperHex for EcPointP {
+    fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
+        write!(f, "x: {:X}, y: {:X} ,z: {:X}", self.x, self.y, self.z)
+    }
+}
+
+impl LowerHex for EcPointP {
+    fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
+        write!(f, "x: {:x}, y: {:x} ,z: {:x}", self.x, self.y, self.z)
+    }
+}
+
+impl Debug for EcPointP {
+    fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
+        write!(f, "x: {}, y: {} ,z: {}", self.x, self.y, self.z)
     }
 }
