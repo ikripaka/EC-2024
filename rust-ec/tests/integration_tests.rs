@@ -2,13 +2,13 @@
 mod tests {
     use num_bigint::{BigInt, BigUint};
     use num_traits::{Num, One};
-    use rust_ec_p_192::affine_point::EcPointA;
-    use rust_ec_p_192::projective_point::EcPointP;
-    use rust_ec_p_192::{EcCurve, Params, PreGeneratedParams};
+    use rust_ec::affine_point::EcPointA;
+    use rust_ec::projective_point::EcPointP;
+    use rust_ec::{ECurve, Params, PreGeneratedParams};
 
     #[test]
     fn testing_ec_creation() {
-        assert!(EcCurve::new(Params {
+        assert!(ECurve::new(Params {
             a: BigInt::from(1_u8),
             b: BigInt::from(1_u8),
             q: BigInt::from(7_u8),
@@ -16,35 +16,35 @@ mod tests {
         .is_ok());
 
         //todo: come up with example equal to zero
-        assert!(EcCurve::new(Params {
+        assert!(ECurve::new(Params {
             a: BigInt::from(1_u8),
             b: BigInt::from(1_u8),
             q: BigInt::from(7_u8),
         })
         .is_ok());
 
-        assert!(EcCurve::new(Params {
+        assert!(ECurve::new(Params {
             a: BigInt::from(3_u8),
             b: BigInt::from(7_u8),
             q: BigInt::from(949_u64),
         })
         .is_ok());
 
-        assert!(EcCurve::new(Params {
+        assert!(ECurve::new(Params {
             a: BigInt::from(5_u8),
             b: BigInt::from(3_u8),
             q: BigInt::from(31_u8),
         })
         .is_ok()); // = -1
 
-        assert!(EcCurve::new(Params {
+        assert!(ECurve::new(Params {
             a: BigInt::from(8_u8),
             b: BigInt::from(1_u8),
             q: BigInt::from(11_u8),
         })
         .is_ok());
 
-        assert!(EcCurve::new(Params {
+        assert!(ECurve::new(Params {
             a: BigInt::from(1_u8),
             b: BigInt::from(1_u8),
             q: BigInt::from(31_u8),
@@ -77,7 +77,7 @@ mod tests {
 
     #[test]
     fn ec_add() {
-        let curve = EcCurve::new(Params {
+        let curve = ECurve::new(Params {
             a: BigInt::from(11_u8),
             b: BigInt::from(7_u8),
             q: BigInt::from(13_u8),
@@ -279,7 +279,7 @@ mod tests {
 
     #[test]
     fn ec_mul() {
-        let curve = EcCurve::new(Params {
+        let curve = ECurve::new(Params {
             a: BigInt::from(11_u8),
             b: BigInt::from(7_u8),
             q: BigInt::from(13_u8),
@@ -392,7 +392,7 @@ mod tests {
 
     #[test]
     fn p192() {
-        let curve = EcCurve::new(Params::from(PreGeneratedParams::P192)).unwrap();
+        let curve = ECurve::new(Params::from(PreGeneratedParams::P192)).unwrap();
         let g = EcPointP::new(
             &BigInt::from_str_radix("188da80eb03090f67cbf20eb43a18800f4ff0afd82ff1012", 16)
                 .unwrap(),

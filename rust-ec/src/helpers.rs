@@ -1,11 +1,11 @@
 use crate::affine_point::EcPointA;
 use crate::projective_point::EcPointP;
-use crate::{EcCurve, EcError};
+use crate::{ECurve, EcError};
 use num_bigint::{BigInt, BigUint, ToBigInt};
 use num_traits::{One, Zero};
 
 /// **projective_to_affine** -- transforms (X, Y, Z) => (X*(Z^{-1} mod q), Y*(Z^{-1} mod q))
-pub fn projective_to_affine(ec: &EcCurve, a: &EcPointP) -> crate::Result<EcPointA> {
+pub fn projective_to_affine(ec: &ECurve, a: &EcPointP) -> crate::Result<EcPointA> {
     if a.is_inf() || a.z == BigInt::zero() {
         Ok(EcPointA {
             x: Default::default(),
@@ -83,7 +83,7 @@ pub(crate) fn take_by_module(x: &BigInt, q: &BigInt) -> BigInt {
     }
 }
 
-pub(crate) fn projective_add(ec_curve: &EcCurve, a: &EcPointP, b: &EcPointP) -> EcPointP {
+pub(crate) fn projective_add(ec_curve: &ECurve, a: &EcPointP, b: &EcPointP) -> EcPointP {
     if a.is_inf() {
         return b.clone();
     } else if b.is_inf() {
@@ -117,7 +117,7 @@ pub(crate) fn projective_add(ec_curve: &EcCurve, a: &EcPointP, b: &EcPointP) -> 
     }
 }
 
-pub(crate) fn projective_double(ec_curve: &EcCurve, a: &EcPointP) -> EcPointP {
+pub(crate) fn projective_double(ec_curve: &ECurve, a: &EcPointP) -> EcPointP {
     if a.is_inf() || a.y == BigInt::zero() {
         EcPointP::neutral()
     } else {
@@ -137,7 +137,7 @@ pub(crate) fn projective_double(ec_curve: &EcCurve, a: &EcPointP) -> EcPointP {
     }
 }
 
-pub(crate) fn projective_mul(ec_curve: &EcCurve, a: &EcPointP, k: &BigUint) -> EcPointP {
+pub(crate) fn projective_mul(ec_curve: &ECurve, a: &EcPointP, k: &BigUint) -> EcPointP {
     let mut r = EcPointP::neutral();
     let mut tmp = a.clone();
 
@@ -150,71 +150,3 @@ pub(crate) fn projective_mul(ec_curve: &EcCurve, a: &EcPointP, k: &BigUint) -> E
     }
     r
 }
-
-// methoda
-//  if *x - '0' as u8 == 0{
-//             r_1 = ec_curve.proj_point_add(&r_0, &r_1);
-//             r_0 = ec_curve.proj_point_add(&r_0, &r_0);
-//         }else{
-//             r_0 = ec_curve.proj_point_add(&r_0, &r_1);
-//             r_1 = ec_curve.proj_point_add(&r_1, &r_1);
-//         }
-
-// wiki https://en.wikipedia.org/wiki/Elliptic_curve_point_multiplication#cite_note-5
-// let mut r_0 = EcPointP::neutral();
-// let mut r_1 = a.clone();
-// for x in k.to_str_radix(2).into_bytes().iter().rev(){
-//         if *x - '0' as u8 == 0{
-//             r_0 = ec_curve.proj_point_add(&r_0, &r_1);
-//             r_1 = ec_curve.proj_point_add(&r_1, &r_1);
-//         }else{
-//             r_1 = ec_curve.proj_point_add(&r_0, &r_1);
-//             r_0 = ec_curve.proj_point_add(&r_0, &r_0);
-//         }
-//     }
-
-// Ordinary mul
-// let mut r = EcPointP::neutral();
-//     let mut tmp = a.clone();
-//     println!("new mul");
-//     let mut c = 1;
-//
-//     // form LSB to MSB
-//     for x in k.to_str_radix(2).into_bytes().iter().rev() {
-//         if *x - '0' as u8 == 1 {
-//             r = ec_curve.proj_point_add(&r, &tmp)
-//         }
-//         println!("r: {:?}", r);
-//         c *= 2;
-//         println!("c: {c}, k:{k}, tmp: {:?}, double: {:?}", tmp, ec_curve.proj_point_add(&tmp, &tmp));
-//         tmp = ec_curve.proj_point_add(&tmp, &tmp)
-//     }
-//     r
-
-// draft add
-// let t_0 = (&a.y * &b.z) % &ec_curve.q;
-//     let t_1 = (&b.y * &a.z) % &ec_curve.q;
-//     let u_0 = (&a.x * &b.z) % &ec_curve.q;
-//     let u_1 = (&b.x * &a.z) % &ec_curve.q;
-//     if u_0 == u_1 {
-//         if t_0 == t_1 {
-//             projective_double(ec_curve, a)
-//         } else {
-//             EcPointP::neutral()
-//         }
-//     } else {
-//         let u = (&u_0 - &u_1) % &ec_curve.q;
-//         let u_2 = (&u * &u) % &ec_curve.q;
-//         let u_3 = (&u * &u_2) % &ec_curve.q;
-//         let t = (&t_0 - &t_1) % &ec_curve.q;
-//         let v = (&a.z * &b.z) % &ec_curve.q;
-//         let w = (&t * &t * &v - &u_2 * (&u_0 + &u_1)) % &ec_curve.q;
-//         let rx = (&u * &w) % &ec_curve.q;
-//         let ry = (&t * (&u_0 * &u_2 - &w) - &t_0 * &u_3) % &ec_curve.q;
-//         let rz = (&u_3 * &v) % &ec_curve.q;
-//         EcPointP {
-//             x: take_by_module(&rx, &ec_curve.q),
-//             y: take_by_module(&ry, &ec_curve.q),
-//             z: take_by_module(&rz, &ec_curve.q),
-//         }
-//     }

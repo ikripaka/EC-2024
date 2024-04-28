@@ -13,7 +13,7 @@ use std::fmt::{Display, Formatter};
 /// points satisfy the following equation
 /// y^2 = x^3 + ax + b or in projective coordinates Y^{2}Z = X^{3} + aXZ^{2} + bZ^3
 /// and EC discriminant has to be not equal to zero, i.e. 4a^3 + 27b^2 mod q != 0
-pub struct EcCurve {
+pub struct ECurve {
     a: BigInt,
     b: BigInt,
     q: BigInt,
@@ -121,10 +121,10 @@ impl Params {
     }
 }
 
-impl EcCurve {
+impl ECurve {
     pub fn new(params: Params) -> Result<Self> {
         params.check_discriminant()?;
-        let ec = EcCurve {
+        let ec = ECurve {
             a: params.a,
             b: params.b,
             q: params.q,

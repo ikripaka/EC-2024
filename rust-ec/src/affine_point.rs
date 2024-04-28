@@ -1,11 +1,7 @@
 use crate::helpers::{affine_to_projective, projective_to_affine};
 use crate::projective_point::EcPointP;
-use crate::EcCurve;
+use crate::ECurve;
 use num_bigint::BigInt;
-
-mod addition;
-mod helpers;
-mod multiplication;
 
 #[derive(Debug, Clone, Eq, PartialEq)]
 pub struct EcPointA {
@@ -23,7 +19,7 @@ impl EcPointA {
         }
     }
 
-    pub fn from_projective(a: &EcPointP, ec_curve: &EcCurve) -> crate::Result<Self> {
+    pub fn from_projective(a: &EcPointP, ec_curve: &ECurve) -> crate::Result<Self> {
         projective_to_affine(ec_curve, a)
     }
 
