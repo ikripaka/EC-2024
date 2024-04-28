@@ -1,7 +1,7 @@
 use crate::affine_point::EcPointA;
 use crate::projective_point::EcPointP;
 use crate::{EcCurve, EcError};
-use num_bigint::{BigInt, ToBigInt};
+use num_bigint::{BigInt, BigUint, ToBigInt};
 use num_traits::{One, Zero};
 
 /// **projective_to_affine** -- transforms (X, Y, Z) => (X*(Z^{-1} mod q), Y*(Z^{-1} mod q))
@@ -75,10 +75,6 @@ pub fn inverse(a: &BigInt, n: &BigInt) -> crate::Result<BigInt> {
     Ok(t)
 }
 
-pub fn check_affine_point_for_inf(x: &BigInt, y: &BigInt) -> bool {
-    todo!()
-}
-
 pub(crate) fn take_by_module(x: &BigInt, q: &BigInt) -> BigInt {
     if *x < BigInt::zero() {
         (q + x) % q
@@ -115,11 +111,85 @@ pub(crate) fn projective_add(ec_curve: &EcCurve, a: &EcPointP, b: &EcPointP) -> 
     let y3 = (&u * (&v * &v * &v_2 - &a) - &v * &v * &v * &u_2) % &ec_curve.q;
     let z3 = (&v * &v * &v * &w) % &ec_curve.q;
     EcPointP {
-        x: x3,
-        y: y3,
-        z: z3,
+        x: take_by_module(&x3, &ec_curve.q),
+        y: take_by_module(&y3, &ec_curve.q),
+        z: take_by_module(&z3, &ec_curve.q),
     }
 }
+
+pub(crate) fn projective_double(ec_curve: &EcCurve, a: &EcPointP) -> EcPointP {
+    if a.is_inf() || a.y == BigInt::zero() {
+        EcPointP::neutral()
+    } else {
+        let two = BigInt::from(2_u8);
+        let t = (&a.x * &a.x * BigInt::from(3_u8) + &ec_curve.a * &a.z * &a.z) % &ec_curve.q;
+        let u = (&a.y * &a.z * &two) % &ec_curve.q;
+        let v = (&u * &a.x * &a.y * &two) % &ec_curve.q;
+        let w = (&t * &t - &v * &two) % &ec_curve.q;
+        let rx = (&u * &w) % &ec_curve.q;
+        let ry = (&t * (&v - &w) - &u * &u * &a.y * &a.y * &two) % &ec_curve.q;
+        let rz = (&u * &u * &u) % &ec_curve.q;
+        EcPointP {
+            x: take_by_module(&rx, &ec_curve.q),
+            y: take_by_module(&ry, &ec_curve.q),
+            z: take_by_module(&rz, &ec_curve.q),
+        }
+    }
+}
+
+pub(crate) fn projective_mul(ec_curve: &EcCurve, a: &EcPointP, k: &BigUint) -> EcPointP {
+    let mut r = EcPointP::neutral();
+    let mut tmp = a.clone();
+
+    // from LSB to MSB
+    for x in k.to_str_radix(2).into_bytes().iter().rev() {
+        if *x - b'0' == 1 {
+            r = ec_curve.proj_point_add(&r, &tmp)
+        }
+        tmp = ec_curve.proj_point_add(&tmp, &tmp)
+    }
+    r
+}
+
+// methoda
+//  if *x - '0' as u8 == 0{
+//             r_1 = ec_curve.proj_point_add(&r_0, &r_1);
+//             r_0 = ec_curve.proj_point_add(&r_0, &r_0);
+//         }else{
+//             r_0 = ec_curve.proj_point_add(&r_0, &r_1);
+//             r_1 = ec_curve.proj_point_add(&r_1, &r_1);
+//         }
+
+// wiki https://en.wikipedia.org/wiki/Elliptic_curve_point_multiplication#cite_note-5
+// let mut r_0 = EcPointP::neutral();
+// let mut r_1 = a.clone();
+// for x in k.to_str_radix(2).into_bytes().iter().rev(){
+//         if *x - '0' as u8 == 0{
+//             r_0 = ec_curve.proj_point_add(&r_0, &r_1);
+//             r_1 = ec_curve.proj_point_add(&r_1, &r_1);
+//         }else{
+//             r_1 = ec_curve.proj_point_add(&r_0, &r_1);
+//             r_0 = ec_curve.proj_point_add(&r_0, &r_0);
+//         }
+//     }
+
+// Ordinary mul
+// let mut r = EcPointP::neutral();
+//     let mut tmp = a.clone();
+//     println!("new mul");
+//     let mut c = 1;
+//
+//     // form LSB to MSB
+//     for x in k.to_str_radix(2).into_bytes().iter().rev() {
+//         if *x - '0' as u8 == 1 {
+//             r = ec_curve.proj_point_add(&r, &tmp)
+//         }
+//         println!("r: {:?}", r);
+//         c *= 2;
+//         println!("c: {c}, k:{k}, tmp: {:?}, double: {:?}", tmp, ec_curve.proj_point_add(&tmp, &tmp));
+//         tmp = ec_curve.proj_point_add(&tmp, &tmp)
+//     }
+//     r
 
 // draft add
 // let t_0 = (&a.y * &b.z) % &ec_curve.q;
@@ -143,32 +213,8 @@ pub(crate) fn projective_add(ec_curve: &EcCurve, a: &EcPointP, b: &EcPointP) -> 
 //         let ry = (&t * (&u_0 * &u_2 - &w) - &t_0 * &u_3) % &ec_curve.q;
 //         let rz = (&u_3 * &v) % &ec_curve.q;
 //         EcPointP {
-//             x: rx,
-//             y: ry,
-//             z: rz,
+//             x: take_by_module(&rx, &ec_curve.q),
+//             y: take_by_module(&ry, &ec_curve.q),
+//             z: take_by_module(&rz, &ec_curve.q),
 //         }
 //     }
-
-pub(crate) fn projective_double(ec_curve: &EcCurve, a: &EcPointP) -> EcPointP {
-    if a.is_inf() || a.y == BigInt::zero() {
-        EcPointP::neutral()
-    } else {
-        let two = BigInt::from(2_u8);
-        let t = (&a.x * &a.x * BigInt::from(3_u8) + &ec_curve.a * &a.z * &a.z) % &ec_curve.q;
-        let u = (&a.y * &a.z * &two) % &ec_curve.q;
-        let v = (&u * &a.x * &a.y * &two) % &ec_curve.q;
-        let w = (&t * &t - &v * &two) % &ec_curve.q;
-        let rx = (&u * &w) % &ec_curve.q;
-        let ry = (&t * (&v - &w) - &u * &u * &a.y * &a.y * &two) % &ec_curve.q;
-        let rz = (&u * &u * &u) % &ec_curve.q;
-        EcPointP {
-            x: rx,
-            y: ry,
-            z: rz,
-        }
-    }
-}
-
-pub(crate) fn projective_mul(ec_curve: &EcCurve, a: &EcPointP, b: &EcPointP) -> EcPointP {
-    todo!()
-}

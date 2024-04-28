@@ -3,7 +3,7 @@ use crate::helpers::{affine_to_projective, projective_to_affine};
 use crate::EcCurve;
 use num_bigint::BigInt;
 use num_traits::{One, Zero};
-use std::fmt::{Debug, Formatter, LowerHex, UpperHex};
+use std::fmt::{Debug, Display, Formatter, LowerHex, UpperHex};
 
 mod addition;
 mod helpers;
@@ -68,6 +68,12 @@ impl LowerHex for EcPointP {
 }
 
 impl Debug for EcPointP {
+    fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
+        write!(f, "x: {}, y: {} ,z: {}", self.x, self.y, self.z)
+    }
+}
+
+impl Display for EcPointP{
     fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
         write!(f, "x: {}, y: {} ,z: {}", self.x, self.y, self.z)
     }
