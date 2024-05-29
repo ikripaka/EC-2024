@@ -178,7 +178,6 @@ mod tests {
             p11.is_inf() && x_p11.is_inf(),
             "p11: {p11:?}, x_p11: {x_p11:?}"
         );
-        println!();
         {
             let p5 = curve.transform_proj_point(&p5).unwrap();
             let p6 = curve.transform_proj_point(&p6).unwrap();
@@ -285,6 +284,7 @@ mod tests {
             q: BigInt::from(13_u8),
         })
         .unwrap();
+        let order = BigUint::from(11_u8);
 
         let p1 = EcPointP::new(&BigInt::from(6), &BigInt::from(4), &BigInt::from(1));
         let p2 = curve.proj_point_add(&p1, &p1);
@@ -352,6 +352,10 @@ mod tests {
             curve.transform_proj_point(&p10).unwrap(),
             "p2_mul: {p2_mul:?}, p2: {p2:?}"
         );
+
+        let p11_mul = curve.proj_point_mul(&p1, &order);
+        assert_eq!(p11_mul, EcPointP::neutral());
+
         let p12_mul = curve.proj_point_mul(&p1, &BigUint::from(12_u8));
         assert_eq!(
             curve.transform_proj_point(&p12_mul).unwrap(),

@@ -27,6 +27,9 @@ pub fn projective_to_affine(ec: &ECurve, a: &EcPointP) -> crate::Result<EcPointA
 // https://math.stackexchange.com/questions/1737883/convert-affine-coordinates-to-projective-coordinates
 // Y^{2}Z = X^{3} + aXZ^{2} + bZ^3
 pub fn affine_to_projective(a: &EcPointA) -> EcPointP {
+    if a.is_inf{
+        return EcPointP::neutral()
+    }
     EcPointP {
         x: a.x.clone(),
         y: a.y.clone(),

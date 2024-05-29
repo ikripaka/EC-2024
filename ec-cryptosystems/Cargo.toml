@@ -1,0 +1,11 @@
+[package]
+name = "ec-cryptosystems"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+rust-ec = {path = "../rust-ec"}
+num-bigint = { version = "0.4.4", features = ["rand"] }
+num-traits = "0.2.18"
+rand = "0.8.5"
+sha3 = "0.10.8"
