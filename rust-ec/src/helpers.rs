@@ -78,12 +78,15 @@ pub fn inverse(a: &BigInt, n: &BigInt) -> crate::Result<BigInt> {
     Ok(t)
 }
 
-pub(crate) fn take_by_module(x: &BigInt, q: &BigInt) -> BigInt {
+pub fn take_by_bigint_module(x: &BigInt, q: &BigInt) -> BigInt {
     if *x < BigInt::zero() {
         (q + x) % q
     } else {
         x % q
     }
+}
+pub fn take_by_biguint_module(x: &BigInt, q: &BigUint) -> BigInt {
+    take_by_bigint_module(x, &BigInt::from(q.clone()))
 }
 
 pub(crate) fn projective_add(ec_curve: &ECurve, a: &EcPointP, b: &EcPointP) -> EcPointP {
@@ -114,9 +117,9 @@ pub(crate) fn projective_add(ec_curve: &ECurve, a: &EcPointP, b: &EcPointP) -> E
     let y3 = (&u * (&v * &v * &v_2 - &a) - &v * &v * &v * &u_2) % &ec_curve.q;
     let z3 = (&v * &v * &v * &w) % &ec_curve.q;
     EcPointP {
-        x: take_by_module(&x3, &ec_curve.q),
-        y: take_by_module(&y3, &ec_curve.q),
-        z: take_by_module(&z3, &ec_curve.q),
+        x: take_by_bigint_module(&x3, &ec_curve.q),
+        y: take_by_bigint_module(&y3, &ec_curve.q),
+        z: take_by_bigint_module(&z3, &ec_curve.q),
     }
 }
 
@@ -133,9 +136,9 @@ pub(crate) fn projective_double(ec_curve: &ECurve, a: &EcPointP) -> EcPointP {
         let ry = (&t * (&v - &w) - &u * &u * &a.y * &a.y * &two) % &ec_curve.q;
         let rz = (&u * &u * &u) % &ec_curve.q;
         EcPointP {
-            x: take_by_module(&rx, &ec_curve.q),
-            y: take_by_module(&ry, &ec_curve.q),
-            z: take_by_module(&rz, &ec_curve.q),
+            x: take_by_bigint_module(&rx, &ec_curve.q),
+            y: take_by_bigint_module(&ry, &ec_curve.q),
+            z: take_by_bigint_module(&rz, &ec_curve.q),
         }
     }
 }

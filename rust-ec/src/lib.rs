@@ -3,7 +3,7 @@ pub mod helpers;
 pub mod projective_point;
 
 use crate::affine_point::EcPointA;
-use crate::helpers::{check_discriminant, inverse, projective_add, projective_mul, take_by_module};
+use crate::helpers::{check_discriminant, inverse, projective_add, projective_mul, take_by_bigint_module};
 use crate::projective_point::EcPointP;
 use num_bigint::{BigInt, BigUint};
 use num_traits::{Num, One};
@@ -141,10 +141,10 @@ impl ECurve {
 
     // Y^{2}Z = X^{3} + aXZ^{2} + bZ^3,
     pub fn check_projective_point(&self, p: &EcPointP) -> bool {
-        take_by_module(
+        take_by_bigint_module(
             &((p.y.modpow(&BigInt::from(2_u8), &self.q) * &p.z) % &self.q),
             &self.q,
-        ) == take_by_module(
+        ) == take_by_bigint_module(
             &((p.x.modpow(&BigInt::from(3_u8), &self.q)
                 + &self.a * &p.x * p.z.modpow(&BigInt::from(2_u8), &self.q)
                 + &self.b * p.z.modpow(&BigInt::from(3_u8), &self.q))
@@ -170,9 +170,9 @@ impl ECurve {
     /// **transform_proj_point** -- transforms projective point Z coordinate into 1
     pub fn transform_proj_point(&self, p: &EcPointP) -> crate::Result<EcPointP> {
         let mut p = p.clone();
-        let inv = inverse(&take_by_module(&p.z, &self.q), &self.q)?;
-        p.x = take_by_module(&((&p.x * &inv) % &self.q), &self.q);
-        p.y = take_by_module(&((&p.y * &inv) % &self.q), &self.q);
+        let inv = inverse(&take_by_bigint_module(&p.z, &self.q), &self.q)?;
+        p.x = take_by_bigint_module(&((&p.x * &inv) % &self.q), &self.q);
+        p.y = take_by_bigint_module(&((&p.y * &inv) % &self.q), &self.q);
         p.z = BigInt::one();
         Ok(p)
     }
@@ -181,9 +181,9 @@ impl ECurve {
     /// i.e. -3 mod 13 = 10 (it removes minuses from point coordinates)
     pub fn take_by_module(&self, p: &EcPointP) -> EcPointP {
         EcPointP {
-            x: take_by_module(&p.x, &self.q),
-            y: take_by_module(&p.y, &self.q),
-            z: take_by_module(&p.z, &self.q),
+            x: take_by_bigint_module(&p.x, &self.q),
+            y: take_by_bigint_module(&p.y, &self.q),
+            z: take_by_bigint_module(&p.z, &self.q),
         }
     }
 }

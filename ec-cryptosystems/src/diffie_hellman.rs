@@ -1,13 +1,11 @@
-use num_bigint::{BigUint, RandomBits, UniformBigInt, UniformBigUint};
+use num_bigint::{BigUint};
 use num_traits::One;
-use rand::distributions::uniform::UniformSampler;
-use rand::Rng;
-use rust_ec::ECurve;
+use once_cell::sync::Lazy;
 use rust_ec::projective_point::EcPointP;
-use crate::EcInfo;
+use crate::{EcInfo, gen_random_biguint, TWO};
 
 pub struct PublicKey {
-    ec_info: EcInfo,
+    pub(crate) ec_info: EcInfo,
     shared_point: EcPointP,
 }
 
@@ -18,21 +16,24 @@ pub struct SharedSecret {
 
 /// **EphemeralSecret** -- A short-lived Diffie-Hellman secret key that can only be used to compute a single SharedSecret.
 pub struct EphemeralSecret {
-    ec_info: EcInfo,
+    pub(crate) ec_info: EcInfo,
     k: BigUint,
 }
 
 impl EphemeralSecret {
-    pub fn random(ec_info: EcInfo) -> EphemeralSecret {
-        let mut rng = rand::thread_rng();
-        let k = UniformBigUint::new_inclusive(&BigUint::from(2_u8), &(ec_info.n.clone() - BigUint::one())).sample(&mut rng);
-        EphemeralSecret{ ec_info, k}
+    pub fn random(ec_info: &EcInfo) -> EphemeralSecret {
+        let k = gen_random_biguint(&Lazy::<BigUint>::get(&TWO).unwrap(),&(ec_info.n.clone() - BigUint::one()));
+        EphemeralSecret{ ec_info: ec_info.clone(), k}
     }
     pub fn diffie_hellman(&self, pub_key: PublicKey) -> SharedSecret {
         SharedSecret{
             ec_info: self.ec_info.clone(),
             shared_point: self.ec_info.ecurve.proj_point_mul(&pub_key.shared_point, &self.k),
         }
+    }
+
+    pub(crate) fn get_key(&self) -> BigUint{
+        self.k.clone()
     }
 }
 

@@ -1,7 +1,7 @@
 use crate::helpers::{affine_to_projective, projective_to_affine};
 use crate::projective_point::EcPointP;
 use crate::ECurve;
-use num_bigint::BigInt;
+use num_bigint::{BigInt, BigUint};
 
 #[derive(Debug, Clone, Eq, PartialEq)]
 pub struct EcPointA {
@@ -33,5 +33,16 @@ impl EcPointA {
             y: -self.y.clone(),
             is_inf: self.is_inf,
         }
+    }
+
+    pub fn get_x(&self) -> BigInt{
+        self.x.clone()
+    }
+    pub fn get_y(&self) -> BigInt{
+        self.y.clone()
+    }
+
+    pub fn is_inf(&self) -> bool{
+        self.is_inf
     }
 }
