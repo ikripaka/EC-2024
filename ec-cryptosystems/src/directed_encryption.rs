@@ -24,7 +24,13 @@ impl Encryptor {
             .to_affine(&ec_info.ecurve)
             .expect("Failed to extract affine point.");
         let ct_k = enc(
-            &affine_shared_point.get_x().to_bytes_be().1[..BYTE_KEY_LEN],
+            &{
+                let mut key = affine_shared_point.get_x().to_bytes_be().1;
+                if key.len() < BYTE_KEY_LEN {
+                    key.extend_from_slice(&vec![0; BYTE_KEY_LEN - key.len()])
+                }
+                key
+            },
             &key_bytes,
         );
 
@@ -39,7 +45,13 @@ impl Encryptor {
             .expect("Failed to extract affine point.");
 
         let pt_k = dec(
-            &affine_shared_point.get_x().to_bytes_be().1[..BYTE_KEY_LEN],
+            &{
+                let mut key = affine_shared_point.get_x().to_bytes_be().1;
+                if key.len() < BYTE_KEY_LEN {
+                    key.extend_from_slice(&vec![0; BYTE_KEY_LEN - key.len()])
+                }
+                key
+            },
             &enc_msg.ct_k,
         );
         let pt_m = dec(&pt_k, &enc_msg.ct_m);
@@ -70,4 +82,21 @@ fn dec(key: &[u8], ct: &[u8]) -> Vec<u8> {
     cipher
         .decrypt(nonce, ciphered_data)
         .expect("failed to decrypt data")
+}
+
+#[cfg(test)]
+mod tests {
+    use crate::directed_encryption::{dec, enc, BYTE_KEY_LEN};
+
+    #[test]
+    fn enc_test() {
+        let key_bytes: [u8; BYTE_KEY_LEN] = rand::random();
+        let msg = [
+            0x01, 0x02, 0x03, 0x04, 0x05, 0x06, 0x07, 0x08, 0x09, 0x0A, 0x0B, 0x0C, 0x0D, 0x0E,
+            0x0F,
+        ];
+        let ct = enc(&key_bytes, &msg);
+        let pt = dec(&key_bytes, &ct);
+        assert_eq!(msg.as_slice(), pt.as_slice())
+    }
 }

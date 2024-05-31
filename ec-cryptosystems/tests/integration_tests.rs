@@ -34,7 +34,7 @@ mod tests {
         let bob_pub_key = PublicKey::from(&bob_secret);
 
         let alice_shared_secret = alice_secret.diffie_hellman(bob_pub_key);
-        let bob_shared_secret = alice_secret.diffie_hellman(alice_pub_key);
+        let bob_shared_secret = bob_secret.diffie_hellman(alice_pub_key);
 
         assert_eq!(alice_shared_secret, bob_shared_secret)
     }
@@ -54,7 +54,8 @@ mod tests {
         let bob_pub_key = PublicKey::from(&bob_secret);
 
         let alice_shared_secret = alice_secret.diffie_hellman(bob_pub_key);
-        let bob_shared_secret = alice_secret.diffie_hellman(alice_pub_key);
+        let bob_shared_secret = bob_secret.diffie_hellman(alice_pub_key);
+
         let ct = Encryptor::encrypt(&msg, &alice_shared_secret);
         let pt = Encryptor::decrypt(&ct, &bob_shared_secret);
 

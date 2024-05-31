@@ -27,9 +27,10 @@ impl EphemeralSecret {
         EphemeralSecret{ ec_info: ec_info.clone(), k}
     }
     pub fn diffie_hellman(&self, pub_key: PublicKey) -> SharedSecret {
+        let curve = &self.ec_info.ecurve;
         SharedSecret{
             ec_info: self.ec_info.clone(),
-            shared_point: self.ec_info.ecurve.proj_point_mul(&pub_key.shared_point, &self.k),
+            shared_point:  curve.transform_proj_point(&curve.proj_point_mul(&pub_key.shared_point, &self.k)).unwrap(),
         }
     }
 

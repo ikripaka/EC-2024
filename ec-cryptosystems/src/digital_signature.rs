@@ -20,7 +20,7 @@ impl Signer {
         let (_one_time_priv_key, _pub_key, r, k) = {
             let (mut r, mut k, mut one_time_priv_key, mut pub_key) =
                 (BigInt::zero(), BigUint::zero(), None, None);
-            while r != BigInt::zero() {
+            while r == BigInt::zero() {
                 let _ = one_time_priv_key.insert(EphemeralSecret::random(&priv_key.ec_info));
                 let _ = pub_key.insert(PublicKey::from(one_time_priv_key.as_ref().unwrap()));
                 let k_p: EcPointA = pub_key
