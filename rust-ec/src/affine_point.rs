@@ -1,7 +1,7 @@
 use crate::helpers::{affine_to_projective, projective_to_affine};
 use crate::projective_point::EcPointP;
 use crate::ECurve;
-use num_bigint::{BigInt, BigUint};
+use num_bigint::{BigInt};
 
 #[derive(Debug, Clone, Eq, PartialEq)]
 pub struct EcPointA {

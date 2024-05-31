@@ -1,7 +1,6 @@
-use crate::diffie_hellman::{EphemeralSecret, PublicKey, SharedSecret};
+use crate::diffie_hellman::SharedSecret;
 use aes_gcm::aead::{Aead, OsRng};
 use aes_gcm::{AeadCore, Aes256Gcm, Key, KeyInit, Nonce};
-use rust_ec::affine_point;
 
 const BYTE_KEY_LEN: usize = 32;
 const NONCE_LEN: usize = 12;
@@ -54,9 +53,7 @@ impl Encryptor {
             },
             &enc_msg.ct_k,
         );
-        let pt_m = dec(&pt_k, &enc_msg.ct_m);
-
-        pt_m
+        dec(&pt_k, &enc_msg.ct_m)
     }
 }
 

@@ -1,11 +1,9 @@
 use crate::diffie_hellman::{EphemeralSecret, PublicKey};
-use crate::{gen_random_biguint, hash};
+use crate::hash;
 use num_bigint::{BigInt, BigUint, Sign};
-use num_traits::{ToBytes, Zero};
+use num_traits::Zero;
 use rust_ec::affine_point::EcPointA;
-use rust_ec::EcInfo;
 use rust_ec::helpers::{inverse, take_by_bigint_module, take_by_biguint_module};
-use sha3::{Digest, Sha3_256};
 
 pub struct Signature {
     r: Vec<u8>,
@@ -58,7 +56,7 @@ impl Verifier {
     pub fn verify(m: &[u8], sign: &Signature, pub_key: &PublicKey) -> bool {
         let digest = BigInt::from_bytes_be(Sign::Plus, &hash(m));
         let n = BigInt::from(pub_key.ec_info.n.clone());
-        let ( r, s) = (
+        let (r, s) = (
             BigInt::from_bytes_be(Sign::Plus, &sign.r),
             BigInt::from_bytes_be(Sign::Plus, &sign.s),
         );
@@ -79,10 +77,11 @@ impl Verifier {
                 .proj_point_mul(&pub_key.get_point_proj(), &u2.to_biguint().unwrap()),
         );
 
-        let lhs = pub_key.ec_info
-            .ecurve.proj_point_add(&part1, &part2);
+        let lhs = pub_key.ec_info.ecurve.proj_point_add(&part1, &part2);
 
-        take_by_biguint_module(&lhs.to_affine(&pub_key.ec_info
-            .ecurve).unwrap().get_x(), &pub_key.ec_info.n) == r
+        take_by_biguint_module(
+            &lhs.to_affine(&pub_key.ec_info.ecurve).unwrap().get_x(),
+            &pub_key.ec_info.n,
+        ) == r
     }
 }
