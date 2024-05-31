@@ -5,7 +5,7 @@ use num_bigint::BigInt;
 use num_traits::{One, Zero};
 use std::fmt::{Debug, Display, Formatter, LowerHex, UpperHex};
 
-#[derive(Clone, Eq, PartialEq)]
+#[derive(Clone, Eq, PartialEq, PartialOrd)]
 pub struct EcPointP {
     pub x: BigInt,
     pub y: BigInt,

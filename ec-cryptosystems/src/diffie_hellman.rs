@@ -1,14 +1,15 @@
 use num_bigint::{BigUint};
 use num_traits::One;
-use once_cell::sync::Lazy;
+use rust_ec::EcInfo;
 use rust_ec::projective_point::EcPointP;
-use crate::{EcInfo, gen_random_biguint, TWO};
+use crate::{ gen_random_biguint};
 
 pub struct PublicKey {
     pub(crate) ec_info: EcInfo,
     shared_point: EcPointP,
 }
 
+#[derive(PartialOrd, PartialEq, Debug, Clone)]
 pub struct SharedSecret {
     ec_info: EcInfo,
     shared_point: EcPointP,
@@ -22,7 +23,7 @@ pub struct EphemeralSecret {
 
 impl EphemeralSecret {
     pub fn random(ec_info: &EcInfo) -> EphemeralSecret {
-        let k = gen_random_biguint(&Lazy::<BigUint>::get(&TWO).unwrap(),&(ec_info.n.clone() - BigUint::one()));
+        let k = gen_random_biguint(&BigUint::from(2_u8),&(ec_info.n.clone() - BigUint::one()));
         EphemeralSecret{ ec_info: ec_info.clone(), k}
     }
     pub fn diffie_hellman(&self, pub_key: PublicKey) -> SharedSecret {
@@ -54,6 +55,10 @@ impl PublicKey {
 impl SharedSecret{
     pub fn get_point_proj(&self) -> EcPointP{
         self.shared_point.clone()
+    }
+
+    pub fn get_ec_info(&self) -> EcInfo{
+        self.ec_info.clone()
     }
 }
 

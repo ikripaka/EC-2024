@@ -15,8 +15,8 @@ pub fn projective_to_affine(ec: &ECurve, a: &EcPointP) -> crate::Result<EcPointA
     } else {
         match inverse(&a.z.to_bigint().unwrap(), &ec.q.to_bigint().unwrap()) {
             Ok(inv) => Ok(EcPointA {
-                x: (&a.x * &inv) % &ec.q,
-                y: (&a.y * &inv) % &ec.q,
+                x: take_by_bigint_module(&(&a.x * &inv), &ec.q),
+                y: take_by_bigint_module(&(&a.y * &inv), &ec.q),
                 is_inf: false,
             }),
             Err(err) => Err(err),

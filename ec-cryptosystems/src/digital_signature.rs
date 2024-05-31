@@ -1,17 +1,18 @@
 use crate::diffie_hellman::{EphemeralSecret, PublicKey};
-use crate::{gen_random_biguint, hash, EcInfo, TWO};
+use crate::{gen_random_biguint, hash};
 use num_bigint::{BigInt, BigUint, Sign};
 use num_traits::{ToBytes, Zero};
 use rust_ec::affine_point::EcPointA;
+use rust_ec::EcInfo;
 use rust_ec::helpers::{inverse, take_by_bigint_module, take_by_biguint_module};
 use sha3::{Digest, Sha3_256};
 
-struct Signature {
+pub struct Signature {
     r: Vec<u8>,
     s: Vec<u8>,
 }
 
-struct Signer {}
+pub struct Signer {}
 
 impl Signer {
     pub fn sign(m: &[u8], priv_key: &EphemeralSecret) -> Signature {
@@ -51,7 +52,7 @@ impl Signer {
     }
 }
 
-struct Verifier {}
+pub struct Verifier {}
 
 impl Verifier {
     pub fn verify(m: &[u8], sign: &Signature, pub_key: &PublicKey) -> bool {
